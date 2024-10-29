@@ -1,0 +1,201 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{geometry}
+\geometry{left=2.5cm,right=2.5cm,top=2.0cm,bottom=2.5cm}
+\usepackage[english]{babel}
+\usepackage{amsmath,amsthm}
+\usepackage{amsfonts}
+\usepackage[longend,ruled,linesnumbered]{algorithm2e}
+\usepackage{fancyhdr}
+\usepackage{ctex}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{corollary}[theorem]{推论}
+
+\begin{document}
+	
+	\section{Cahn-Hilliard方程的混合有限元形式}
+	
+	考虑给定的Cahn-Hilliard方程：
+	\begin{equation}
+		\begin{cases}
+			u_t - \Delta\left(-\Delta u + \dfrac{1}{\varepsilon^2} f(u)\right) = 0, & (x, t) \in \Omega \times (0, T], \\
+			\left.\partial_n u\right|_{\partial \Omega} = 0, \\
+			\left.\partial_n\left(\Delta u - \dfrac{1}{\varepsilon^2} f(u)\right)\right|_{\partial \Omega} = 0, \\
+			u|_{t=0} = u_0,
+		\end{cases}
+	\end{equation}
+	其中取 \( f(u) = u^3 - u \)，\( \varepsilon \) 为正参数。
+	
+	在Cahn-Hilliard方程中，自由能 \( E(u) \) 的表达式用于描述系统的能量状态，通常定义为：
+	
+	\begin{equation}
+		E(u) = \int_{\Omega} \left( \frac{\varepsilon^2}{2} |\nabla u|^2 + F(u) \right) dx,
+	\end{equation}
+	
+	其中 \( F(u) = \frac{1}{4}(u^2 - 1)^2 \)
+	
+	\subsection{引入辅助变量 \( w \)}
+	
+	为了将高阶的四阶偏微分方程转化为一阶系统，引入辅助变量 \( w \) 定义为：
+	\begin{equation}
+		w = -\Delta u + \dfrac{1}{\varepsilon^2} f(u)
+	\end{equation}
+	则原方程可以改写为：
+	\begin{equation}
+		\begin{cases}
+			u_t - \Delta w = 0, & \text{in } \Omega, \\
+			w + \Delta u - \dfrac{1}{\varepsilon^2} f(u) = 0, & \text{in } \Omega, \\
+			\left.\partial_n u \right|_{\partial \Omega} = 0, & \text{on } \partial \Omega, \\
+			\left.\partial_n w \right|_{\partial \Omega} = 0, & \text{on } \partial \Omega.
+		\end{cases}
+	\end{equation}
+
+	
+	\subsection{弱形式}
+	
+	找 \( u, w \in H^1(\Omega) \)，使得 \(\forall q, \psi \in H^1(\Omega) \)，满足：
+	\begin{align}
+		& \int_{\Omega} u_t q \, dx + \int_{\Omega} \nabla w \cdot \nabla q \, dx = 0, & \forall q \in H^1(\Omega), \\
+		& \int_{\Omega} \nabla u \cdot \nabla \psi \, dx + \dfrac{1}{\varepsilon^2} \int_{\Omega} f(u) \psi \, dx = \int_{\Omega} w \psi \, dx, & \forall \psi \in H^1(\Omega).
+	\end{align}
+		
+	
+	\section{有限元离散}
+	
+	\subsection{有限元空间}
+	
+	拉格朗日一次元：
+	
+	\[
+	V_h = \left\{ v \in H^1(\Omega) : v|_{K} \text{ 是线性函数，且在每个单元 } K \text{ 上连续} \right\}
+	\]
+	
+%	\begin{equation}
+%		u_h^{n+1} = \sum_{i=1}^N u_i^{n+1} \phi_i, \quad w_h^{n+1} = \sum_{i=1}^N w_i^{n+1} \phi_i
+%	\end{equation}
+%	
+%	这里的 \( u_i^{n+1} \) 和 \( w_i^{n+1} \) 是待求的未知系数，它们表示解 \( u \) 和 \( w \) 在节点 \( i \) 处的近似值。
+	
+	
+%	\subsection{离散化弱形式}
+%	
+%	找 \( u_h^{n+1}, w_h^{n+1} \in V_h \)，使得 \( \forall \phi_j, \phi_k \in V_h \)，满足：
+%	
+%	\begin{align}
+%		& \sum_{i=1}^N \dfrac{u_i^{n+1} - u_i^n}{\delta t} \int_{\Omega} \phi_i \phi_j \, dx + \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_j \, dx = 0, \quad \forall j=1,2,\ldots,N, \\
+%		& \sum_{i=1}^N u_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_k \, dx + \dfrac{1}{\varepsilon^2} \sum_{i=1}^N (u_i^n)^3 - u_i^n \int_{\Omega} \phi_i \phi_k \, dx = \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \phi_i \phi_k \, dx, \quad \forall k=1,2,\ldots,N.
+%	\end{align}
+%	
+%	其中，\( u_h^{n+1} = \sum_{i=1}^N u_i^{n+1} \phi_i \) 和 \( w_h^{n+1} = \sum_{i=1}^N w_i^{n+1} \phi_i \) 是在有限元基函数上的展开，满足上式中每个积分形式所规定的离散条件。
+	
+	
+	
+	\subsection{离散化弱形式}
+	
+	找 \( u_h^{n+1} \) 和 \( w_h^{n+1} \in V_h \)，使得 \( \forall \phi_j, \phi_k \in V_h \)，满足：
+	
+	\begin{align}
+		& \int_{\Omega} \dfrac{u_h^{n+1} - u_h^n}{\delta t} \phi_j \, dx + \int_{\Omega} \nabla w_h^{n+1} \cdot \nabla \phi_j \, dx = 0, \quad \forall j = 1,2,\ldots, N, \\
+		& \int_{\Omega} \nabla u_h^{n+1} \cdot \nabla \phi_k \, dx + \dfrac{1}{\varepsilon^2} \int_{\Omega} f(u_h^n) \phi_k \, dx = \int_{\Omega} w_h^{n+1} \phi_k \, dx, \quad \forall k = 1,2,\ldots, N,
+	\end{align}
+	
+	其中 \( f(u_h^n) = (u_h^n)^3 - u_h^n \) 是已知时间步上的非线性项。
+	
+	接下来，将 \( u_h^{n+1} = \sum_{i=1}^N u_i^{n+1} \phi_i \) 和 \( w_h^{n+1} = \sum_{i=1}^N w_i^{n+1} \phi_i \) 带入上述方程，展开积分项，得到以下离散方程：
+	
+	\begin{align}
+		& \sum_{i=1}^N \dfrac{u_i^{n+1} - u_i^n}{\delta t} \int_{\Omega} \phi_i \phi_j \, dx + \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_j \, dx = 0, \quad \forall j=1,2,\ldots,N, \\
+		& \sum_{i=1}^N u_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_k \, dx + \dfrac{1}{\varepsilon^2} \int_{\Omega} f(u_h^n) \phi_k \, dx = \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \phi_i \phi_k \, dx, \quad \forall k=1,2,\ldots,N.
+	\end{align}
+	
+	这里不再展开已知的 \( u_h^n \) 项，只保留 \( f(u_h^n) \)，从而确保表达的简洁和正确。
+	
+	
+	
+	\subsection{矩阵表示}
+	
+	组装下列矩阵：
+	
+	\begin{itemize}
+		\item 质量矩阵 \( M \)： \( M_{ij} = \int_{\Omega} \phi_i \phi_j \, dx \)
+		\item 刚度矩阵 \( S \)：\( S_{ij} = \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_j \, dx \)
+		\item 非线性项向量 \( \mathbf{F}(u^n) \)：\( F_i(u^n) = \int_{\Omega} f(u_h^n) \phi_i \, dx = \int_{\Omega} \left((u_h^n)^3 - u_h^n\right) \phi_i \, dx \)
+	\end{itemize}
+	
+	将上述定义代入离散方程中，可以得到矩阵形式：
+	\begin{equation}
+		\begin{cases}
+			\frac{1}{\delta t} M (\mathbf{u}^{n+1} - \mathbf{u}^n) + S \mathbf{w}^{n+1} = \mathbf{0}, \\
+			S \mathbf{u}^{n+1} + \dfrac{1}{\varepsilon^2} \mathbf{F}(u^n) = M \mathbf{w}^{n+1}。
+		\end{cases}
+	\end{equation}
+	
+	\subsection{组合线性系统}
+	
+	为了同时求解 \( \mathbf{u}^{n+1} \) 和 \( \mathbf{w}^{n+1} \)，将上述两个方程组合成一个线性系统：
+	\begin{equation}
+		\begin{bmatrix}
+			\frac{1}{\delta t} M & S \\
+			S & -M
+		\end{bmatrix}
+		\begin{bmatrix}
+			\mathbf{u}^{n+1} \\
+			\mathbf{w}^{n+1}
+		\end{bmatrix}
+		=
+		\begin{bmatrix}
+			\frac{1}{\delta t} M \mathbf{u}^n \\
+			- \frac{1}{\varepsilon^2} \mathbf{F}(u^n)
+		\end{bmatrix}
+	\end{equation}
+	
+%	这个系统可以表示为：
+%	\begin{equation}
+%		A
+%		\begin{bmatrix}
+%			\mathbf{u}^{n+1} \\
+%			\mathbf{w}^{n+1}
+%		\end{bmatrix}
+%		=
+%		b
+%	\end{equation}
+%	其中：
+%	\begin{itemize}
+%		\item \( A \) 是一个 \( 2N \times 2N \) 的系数矩阵，结构为：
+%		\[
+%		A = \begin{bmatrix}
+%			\frac{1}{\delta t} M & S \\
+%			S & -M
+%		\end{bmatrix}
+%		\]
+%		\item \( \mathbf{u}^{n+1} \) 和 \( \mathbf{w}^{n+1} \) 是未知量向量，大小为 \( N \times 1 \)。
+%		\item \( b \) 是已知的右端向量，大小为 \( 2N \times 1 \)，由当前时间步的解 \( \mathbf{u}^n \) 计算得到：
+%		\[
+%		b = \begin{bmatrix}
+%			\frac{1}{\delta t} M \mathbf{u}^n \\
+%			- \frac{1}{\varepsilon^2} \mathbf{F}(u^n)
+%		\end{bmatrix}
+%		\]
+%	\end{itemize}
+	\subsection{自由能表达式 \( E(u) \)}
+	
+	在Cahn-Hilliard方程中，自由能 \( E(u) \) 的表达式用于描述系统的能量状态，通常定义为：
+	
+	\begin{equation}
+		E(u) = \int_{\Omega} \left( \frac{\varepsilon^2}{2} |\nabla u|^2 + F(u) \right) dx,
+	\end{equation}
+	
+	其中 \( F(u) = \frac{1}{4}(u^2 - 1)^2 \) 是双稳态势能，描述了 \( u \) 在不同相之间的能量差异。通过该自由能表达式，Cahn-Hilliard方程的动力学可以解释为能量逐渐降低的过程。
+	
+	在数值求解中，自由能 \( E(u) \) 的项 \( \frac{\varepsilon^2}{2} |\nabla u|^2 \) 会产生扩散效应，平滑 \( u \) 的梯度，而势能项 \( F(u) \) 则驱动系统向双稳态转变。
+	
+	
+	
+\end{document}
+
+
