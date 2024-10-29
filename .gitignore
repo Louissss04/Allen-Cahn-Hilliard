@@ -29,3 +29,13 @@ codegen/
 
 # Octave session info
 octave-workspace
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.loc
+*.out
+*.pdf
+*.soc
+*.gz
