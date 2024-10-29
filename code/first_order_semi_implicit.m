@@ -165,7 +165,7 @@ end
 
 % plot
 figure;
-for n = 1:100:numSteps+1
+for n = 1:1000:numSteps+1
     trisurf(elem, node(:, 1), node(:, 2), u_all(:, n));
     shading interp;
     title(['Time step ', num2str(n)]);
@@ -177,5 +177,5 @@ figure;
 plot(0:10*dt:T, energy(1:10:end));
 xlabel('Time');
 ylabel('Energy');
-title('Energy Dissipation over Time');
+title('Energy Dissipation');
 grid on;
