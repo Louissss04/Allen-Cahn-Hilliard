@@ -1,6 +1,6 @@
 clear;
 
-% Cahn-Hilliard 方程一阶半隐式 P1-P1 元 
+% Cahn-Hilliard 方程一阶稳定半隐式 P1-P1 元 
 
 % Mesh generation
 [node, elem] = squaremesh([0, 2*pi, 0, 2*pi], 0.25*pi);
@@ -9,8 +9,9 @@ showmesh(node, elem);
 % Important constant
 N = size(node, 1); % 节点数目
 NT = size(elem, 1); % 单元数目
-Ndof = N; % 自由度shumu
+Ndof = N; % 自由度个数
 epsilon = 0.1; % epsilon 参数
+K = 0.01; % 稳定项系数 K 
 
 % Time
 dt = 1e-6; % 时间步长
@@ -21,7 +22,7 @@ numSteps = round(T / dt); % 时间步数
 u_all = zeros(N, numSteps + 1); % 存储所有时间步的解，N x (numSteps + 1)
 u = 0.05 * sin(node(:, 1)) .* sin(node(:, 2)); % 初始条件 u(x,y,0) = 0.05 * sin(x) * sin(y)
 u_all(:, 1) = u; % 保存初始条件
-energy = zeros(numSteps + 1, 1); % 初始自由能
+energy = zeros(numSteps + 1, 1);
 
 % Dphi = Dlambda
 [Dphi, area] = gradbasis(node, elem);
@@ -55,7 +56,7 @@ end
 F_energy = @(u) (1/4) * (u.^2 - 1).^2;
 energy_grad = 0;
 energy_potential = 0;
-[lambda, weight] = quadpts(2); 
+[lambda, weight] = quadpts(2); % 获取积分点和权重（这里选择2阶积分）
 phi = lambda; % 线性基函数
 nQuad = size(lambda, 1);
 
@@ -65,13 +66,14 @@ for p = 1:nQuad
         + lambda(p, 2) * node(elem(:, 2), :) ...
         + lambda(p, 3) * node(elem(:, 3), :);
 
-    % 获取初始解 u 在每个节点上的值
-    u1 = u(elem(:, 1));
-    u2 = u(elem(:, 2));
-    u3 = u(elem(:, 3));
-
-    % 通过插值获取 u 在积分点位置的值
-    u_p = lambda(p, 1) * u1 + lambda(p, 2) * u2 + lambda(p, 3) * u3;
+%     % 获取初始解 u 在每个节点上的值
+%     u1 = u(elem(:, 1));
+%     u2 = u(elem(:, 2));
+%     u3 = u(elem(:, 3));
+% 
+%     % 通过插值获取 u 在积分点位置的值
+%     u_p = lambda(p, 1) * u1 + lambda(p, 2) * u2 + lambda(p, 3) * u3;
+    u_p = 0.05 * sin(pxy(:, 1)) .* sin(pxy(:, 2)); % 初始条件 u(x,y,0) = 0.05 * sin(x) * sin(y)
 
     % 计算非线性势能项 F(u_p)
     fp = F_energy(u_p); % 使用插值后的解值 u_p 计算非线性势能项
@@ -87,7 +89,7 @@ energy(1) = sum(energy_grad) + sum(energy_potential);
 
 % 开始模拟
 for n = 1:numSteps
-    % 计算非线性项 F(u^n) (这个F是RHS的vector F)
+    % 计算非线性项 F(u^n)
     f = @(u) u.^3 - u; % 定义非线性函数 f(u)
     F_local = zeros(NT, 3); % 初始化局部右端项
 
@@ -121,8 +123,8 @@ for n = 1:numSteps
 
     % 构造整体矩阵和右端项以一次性求解 u^{n+1} 和 w^{n+1}
     % 构造左端矩阵 A 和右端向量 b
-    A = [M/dt, S; S, -M];
-    b = [(M/dt) * u; -F / epsilon^2];
+    A = [M/dt, S; (K / epsilon^2) * M + S, -M];
+    b = [(M/dt) * u; (K / epsilon^2) * M * u - F / epsilon^2];
 
     % 求解线性系统 A * [u^{n+1}; w^{n+1}] = b
     sol = A \ b;

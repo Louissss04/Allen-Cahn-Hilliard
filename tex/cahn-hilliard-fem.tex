@@ -187,20 +187,20 @@
 
 \subsection{弱形式}
 
-找 \( u^{n+1}, w^{n+1} \in H^1(\Omega) \)，使得 \( \forall q, \psi \in H^1(\Omega) \)，满足：
+找 \( u^{n+1}, w^{n+1} \in H^1(\Omega) \)，使得 \( \forall q, \psi \in H^1(\Omega) \)，满足以下弱形式方程：
 
 \begin{align}
 	& \frac{1}{\delta t} (u^{n+1} - u^n, q) + (\nabla w^{n+1}, \nabla q) = 0, \quad \forall q \in H^1(\Omega), \\
-	& (\nabla u^{n+1}, \nabla \psi) + \frac{S}{\varepsilon^2} (u^{n+1} - u^n, \psi) + \frac{1}{\varepsilon^2} (f(u^n), \psi) = (w^{n+1}, \psi), \quad \forall \psi \in H^1(\Omega).
+	& (\nabla u^{n+1}, \nabla \psi) + \frac{K}{\varepsilon^2} (u^{n+1} - u^n, \psi) + \frac{1}{\varepsilon^2} (f(u^n), \psi) = (w^{n+1}, \psi), \quad \forall \psi \in H^1(\Omega).
 \end{align}
 
 \subsection{离散化}
 
-选择有限维子空间 \( V_h \subset H^1(\Omega) \)，其基函数为 \( \{ \phi_i \}_{i=1}^N \)。我们在每个时间步上寻找 \( u_h^{n+1}, w_h^{n+1} \in V_h \)，使得对于所有 \( \phi_j, \phi_k \in V_h \)，满足以下离散化后的弱形式方程：
+找 \( u_h^{n+1}, w_h^{n+1} \in V_h \)，使得 \( \forall \phi_j, \phi_k \in V_h \)，满足：
 
 \begin{align}
 	& \frac{1}{\delta t} \sum_{i=1}^N (u_i^{n+1} - u_i^n) \int_{\Omega} \phi_i \phi_j \, dx + \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_j \, dx = 0, \quad \forall j = 1,2,\ldots, N, \\
-	& \sum_{i=1}^N u_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_k \, dx + \frac{S}{\varepsilon^2} \sum_{i=1}^N (u_i^{n+1} - u_i^n) \int_{\Omega} \phi_i \phi_k \, dx + \frac{1}{\varepsilon^2} \int_{\Omega} f(u_h^n) \phi_k \, dx = \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \phi_i \phi_k \, dx, \quad \forall k = 1,2,\ldots, N.
+	& \sum_{i=1}^N u_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_k \, dx + \frac{K}{\varepsilon^2} \sum_{i=1}^N (u_i^{n+1} - u_i^n) \int_{\Omega} \phi_i \phi_k \, dx + \frac{1}{\varepsilon^2} \int_{\Omega} f(u_h^n) \phi_k \, dx = \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \phi_i \phi_k \, dx, \quad \forall k = 1,2,\ldots, N.
 \end{align}
 
 \subsection{矩阵形式}
@@ -208,7 +208,7 @@
 \[
 \begin{cases}
 	\frac{1}{\delta t} M (\mathbf{u}^{n+1} - \mathbf{u}^n) + S \mathbf{w}^{n+1} = 0, \\
-	S \mathbf{u}^{n+1} + \frac{S}{\varepsilon^2} M (\mathbf{u}^{n+1} - \mathbf{u}^n) + \frac{1}{\varepsilon^2} \mathbf{F}(u^n) = M \mathbf{w}^{n+1}.
+	S \mathbf{u}^{n+1} + \frac{K}{\varepsilon^2} M (\mathbf{u}^{n+1} - \mathbf{u}^n) + \frac{1}{\varepsilon^2} \mathbf{F}(u^n) = M \mathbf{w}^{n+1}.
 \end{cases}
 \]
 
@@ -217,7 +217,7 @@
 \[
 \begin{bmatrix}
 	\frac{1}{\delta t} M & S \\
-	\frac{S}{\varepsilon^2} M + S & -M
+	\frac{K}{\varepsilon^2} M + S & -M
 \end{bmatrix}
 \begin{bmatrix}
 	\mathbf{u}^{n+1} \\
@@ -226,14 +226,16 @@
 =
 \begin{bmatrix}
 	\frac{1}{\delta t} M \mathbf{u}^n \\
-	\frac{S}{\varepsilon^2} M \mathbf{u}^n - \frac{1}{\varepsilon^2} \mathbf{F}(u^n)
+	\frac{K}{\varepsilon^2} M \mathbf{u}^n - \frac{1}{\varepsilon^2} \mathbf{F}(u^n)
 \end{bmatrix}.
 \]
 
 %在此系统中：
 %
-%- 左侧的矩阵 \( A \) 是一个 \( 2N \times 2N \) 的系数矩阵，用于描述系统的各项作用。
-%- 右侧的向量 \( b \) 是当前时间步的已知项，取决于之前的解 \( \mathbf{u}^n \) 和非线性项 \( \mathbf{F}(u^n) \)。
+%- 左侧的矩阵是一个 \( 2N \times 2N \) 的系数矩阵，用于描述系统的各项作用。
+%- 右侧的向量是当前时间步的已知项，取决于之前的解 \( \mathbf{u}^n \) 和非线性项 \( \mathbf{F}(u^n) \)。
+
+
 
 
 	
