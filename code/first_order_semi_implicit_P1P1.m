@@ -65,10 +65,10 @@ for p = 1:nQuad
         + lambda(p, 2) * node(elem(:, 2), :) ...
         + lambda(p, 3) * node(elem(:, 3), :);
 
-%     % 获取初始解 u 在每个节点上的值
-%     u1 = u(elem(:, 1));
-%     u2 = u(elem(:, 2));
-%     u3 = u(elem(:, 3));
+    % 获取初始解 u 在每个节点上的值
+    u1 = u(elem(:, 1));
+    u2 = u(elem(:, 2));
+    u3 = u(elem(:, 3));
 % 
 %     % 通过插值获取 u 在积分点位置的值
 %     u_p = lambda(p, 1) * u1 + lambda(p, 2) * u2 + lambda(p, 3) * u3;
@@ -77,11 +77,17 @@ for p = 1:nQuad
     % 计算非线性势能项 F(u_p)
     fp = F_energy(u_p); % 使用插值后的解值 u_p 计算非线性势能项
 
-    % 计算梯度项和势能项的贡献
-    for i = 1:3
-        energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * sum((Dphi(:, 1, i) .* u_p).^2, 2) .* area;
-        energy_potential = energy_potential + weight(p) * fp .* area;
-    end
+    % 计算每个单元的梯度 grad_u
+    grad_u = Dphi(:, :, 1) .* u1 + Dphi(:, :, 2) .* u2 + Dphi(:, :, 3) .* u3; % NT x 2
+
+    % 计算 |grad_u|^2
+    grad_u_sq = grad_u(:, 1).^2 + grad_u(:, 2).^2; % NT x 1
+
+    % 累加梯度能量项
+    energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * grad_u_sq .* area;
+
+    % 累加势能项
+    energy_potential = energy_potential + weight(p) * fp .* area;
 end
 
 energy(1) = sum(energy_grad) + sum(energy_potential);
@@ -155,11 +161,17 @@ for n = 1:numSteps
         % 计算非线性势能项 F(u_p)
         fp = F_energy(u_p);
 
-        % 计算梯度项和势能项的贡献
-        for i = 1:3
-            energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * sum((Dphi(:, 1, i) .* u_p).^2, 2) .* area;
-            energy_potential = energy_potential + weight(p) * fp .* area;
-        end
+        % 计算每个单元的梯度 grad_u
+        grad_u = Dphi(:, :, 1) .* u1 + Dphi(:, :, 2) .* u2 + Dphi(:, :, 3) .* u3; % NT x 2
+    
+        % 计算 |grad_u|^2
+        grad_u_sq = grad_u(:, 1).^2 + grad_u(:, 2).^2; % NT x 1
+    
+        % 累加梯度能量项
+        energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * grad_u_sq .* area;
+    
+        % 累加势能项
+        energy_potential = energy_potential + weight(p) * fp .* area;
     end
     energy(n + 1) = sum(energy_grad) + sum(energy_potential);
 end

@@ -16,7 +16,7 @@ epsilon = 0.1; % epsilon 参数
 
 % Time
 dt = 1e-6; % 时间步长
-T = 0.1; % 总时间
+T = 0.001; % 总时间
 numSteps = round(T / dt); % 时间步数
 
 % Init
@@ -38,7 +38,7 @@ energy = zeros(numSteps + 1, 1); % 初始自由能
 area = repmat(area, 1, 6); % 将面积扩展为与每个基函数对应的大小
 
 % Get quadrature points and weights
-[lambda, weight] = quadpts(3); % 选择 3 阶积分，用于 P2 元
+[lambda, weight] = quadpts(3); 
 nQuad = size(lambda, 1);
 
 % Generate sparse pattern for stiffness and mass matrices
@@ -82,8 +82,7 @@ sA = sum(sA, 2);
 % Create the sparse stiffness matrix
 S = sparse(ii, jj, sA, Ndof, Ndof);
 
-% Assemble mass matrix M for P2 elements
-sM = zeros(21*NT, nQuad);
+phip = zeros(nQuad, 6);
 for p = 1:nQuad
     % Evaluate shape functions at quadrature points
     phip(p,6) = 4 * lambda(p,1) .* lambda(p,2);
@@ -92,6 +91,11 @@ for p = 1:nQuad
     phip(p,3) = lambda(p,3) .* (2 * lambda(p,3) - 1);
     phip(p,4) = 4 * lambda(p,2) .* lambda(p,3);
     phip(p,5) = 4 * lambda(p,3) .* lambda(p,1);
+end
+
+% Assemble mass matrix M for P2 elements
+sM = zeros(21*NT, nQuad);
+for p = 1:nQuad
     index = 0;
     for i = 1:6
         for j = i:6
@@ -150,13 +154,11 @@ for n = 1:numSteps
             + lambda(p, 3) * node(elem(:, 3), :);
 
         % 获取当前时间步解 u 在每个自由度上的值
-        temp = u_all(:,n);
-        u_vals = temp(elem2dof);
+        u_current = u_all(:,n);
+        u_vals = u_current(elem2dof);
 
-        % 通过二次插值获取 u 在积分点位置的值
-        u_p = lambda(p, 1) * u_vals(:, 1) + lambda(p, 2) * u_vals(:, 2) + lambda(p, 3) * u_vals(:, 3) ...
-              + 4 * lambda(p, 1) * lambda(p, 2) * u_vals(:, 4) + 4 * lambda(p, 2) * lambda(p, 3) * u_vals(:, 5) ...
-              + 4 * lambda(p, 3) * lambda(p, 1) * u_vals(:, 6);
+        % Compute u_p using shape functions phip
+        u_p = sum(phip(p,:) .* u_vals, 2); % NT x 1
 
         % 计算非线性项 f(u_p) 的值
         fp = f(u_p);
@@ -193,13 +195,11 @@ for n = 1:numSteps
             + lambda(p, 3) * node(elem(:, 3), :);
 
         % 获取当前时间步解 u 在每个自由度上的值
-        temp = u_all(:,n+1);
-        u_vals = temp(elem2dof);
+        u_current = u_all(:,n+1);
+        u_vals = u_current(elem2dof);
 
-        % 通过二次插值获取 u 在积分点位置的值
-        u_p = lambda(p, 1) * u_vals(:, 1) + lambda(p, 2) * u_vals(:, 2) + lambda(p, 3) * u_vals(:, 3) ...
-              + 4 * lambda(p, 1) * lambda(p, 2) * u_vals(:, 4) + 4 * lambda(p, 2) * lambda(p, 3) * u_vals(:, 5) ...
-              + 4 * lambda(p, 3) * lambda(p, 1) * u_vals(:, 6);
+        % Compute u_p using shape functions phip
+        u_p = sum(phip(p,:) .* u_vals, 2); % NT x 1
 
         % 计算非线性势能项 F(u_p)
         fp = F_energy(u_p);
@@ -215,7 +215,7 @@ end
 
 % plot
 figure;
-for n = 1:1000:numSteps+1
+for n = 1:100:numSteps+1
     trisurf(elem, node(:, 1), node(:, 2), u_all(1:N, n));
     shading interp;
     title(['Time step ', num2str(n)]);
