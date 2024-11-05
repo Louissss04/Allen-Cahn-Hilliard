@@ -12,11 +12,11 @@ N = size(node, 1); % 节点数目
 NT = size(elem, 1); % 单元数目
 NE = size(edge, 1); % 边数目
 Ndof = N + NE; % 自由度个数
-epsilon = 0.1; % epsilon 参数
+epsilon = 1; % epsilon 参数
 
 % Time
-dt = 1e-6; % 时间步长
-T = 0.001; % 总时间
+dt = 1e-5; % 时间步长
+T = 1; % 总时间
 numSteps = round(T / dt); % 时间步数
 
 % Init
@@ -33,7 +33,13 @@ end
 
 energy = zeros(numSteps + 1, 1); % 初始自由能
 
-% Compute geometric quantities and gradients of local basis functions (Dlambda = Dphi)
+% 定义精确解和源项 g 的匿名函数
+exact_u = @(x, y, t) 0.05 * exp(-t) .* sin(x) .* sin(y);
+g_func = @(x, y, t) (0.15 - 0.10 / epsilon^2) * exp(-t) .* sin(x) .* sin(y) ...
+    - (0.00075 / epsilon^2) * exp(-3 * t) .* (sin(x) .* cos(x).^2 .* sin(y).^3 + ...
+    sin(y) .* cos(y).^2 .* sin(x).^3 - sin(x).^3 .* sin(y).^3);
+
+% Dphi = Dlambda
 [Dlambda, area] = gradbasis(node, elem); % 计算基函数梯度和单元面积
 area = repmat(area, 1, 6); % 将面积扩展为与每个基函数对应的大小
 
@@ -82,9 +88,9 @@ sA = sum(sA, 2);
 % Create the sparse stiffness matrix
 S = sparse(ii, jj, sA, Ndof, Ndof);
 
+% Define shape functions at quadrature points
 phip = zeros(nQuad, 6);
 for p = 1:nQuad
-    % Evaluate shape functions at quadrature points
     phip(p,6) = 4 * lambda(p,1) .* lambda(p,2);
     phip(p,1) = lambda(p,1) .* (2 * lambda(p,1) - 1);
     phip(p,2) = lambda(p,2) .* (2 * lambda(p,2) - 1);
@@ -119,6 +125,8 @@ M = M + MU + MU';
 F_energy = @(u) (1/4) * (u.^2 - 1).^2;
 energy_grad = 0;
 energy_potential = 0;
+
+% Initial energy calculation
 for p = 1:nQuad
     % 计算积分点在全局坐标中的位置
     pxy = lambda(p, 1) * node(elem(:, 1), :) ...
@@ -129,15 +137,34 @@ for p = 1:nQuad
     u_p = 0.05 * sin(pxy(:, 1)) .* sin(pxy(:, 2));
 
     % 计算非线性势能项 F(u_p)
-    fp = F_energy(u_p);
+    fp = F_energy(u_p); % NT x1
 
-    % 计算梯度项和势能项的贡献
-    for i = 1:6
-        energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * sum((Dphip(:, 1, i, p) .* u_p).^2, 2) .* area(:, i);
-        energy_potential = energy_potential + weight(p) * fp .* area(:, i);
-    end
+    % 计算每个单元的梯度 grad_u
+    grad_u_x = Dphip(:,1,1,p) .* u_all(elem2dof(:,1), 1) + ...
+              Dphip(:,1,2,p) .* u_all(elem2dof(:,2), 1) + ...
+              Dphip(:,1,3,p) .* u_all(elem2dof(:,3), 1) + ...
+              Dphip(:,1,4,p) .* u_all(elem2dof(:,4), 1) + ...
+              Dphip(:,1,5,p) .* u_all(elem2dof(:,5), 1) + ...
+              Dphip(:,1,6,p) .* u_all(elem2dof(:,6), 1); % NT x1
+
+    grad_u_y = Dphip(:,2,1,p) .* u_all(elem2dof(:,1), 1) + ...
+              Dphip(:,2,2,p) .* u_all(elem2dof(:,2), 1) + ...
+              Dphip(:,2,3,p) .* u_all(elem2dof(:,3), 1) + ...
+              Dphip(:,2,4,p) .* u_all(elem2dof(:,4), 1) + ...
+              Dphip(:,2,5,p) .* u_all(elem2dof(:,5), 1) + ...
+              Dphip(:,2,6,p) .* u_all(elem2dof(:,6), 1); % NT x1
+
+    % 计算 |grad_u|^2
+    grad_u_sq = grad_u_x.^2 + grad_u_y.^2; % NT x1
+
+    % 累加梯度能量项
+    energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * grad_u_sq .* area(:, 1);
+
+    % 累加势能项
+    energy_potential = energy_potential + weight(p) * fp .* area(:, 1);
 end
 
+% 总能量
 energy(1) = sum(energy_grad) + sum(energy_potential);
 
 % 开始模拟
@@ -155,22 +182,22 @@ for n = 1:numSteps
 
         % 获取当前时间步解 u 在每个自由度上的值
         u_current = u_all(:,n);
-        u_vals = u_current(elem2dof);
+        u_vals = u_current(elem2dof(:,1:6)); % NT x6
 
         % Compute u_p using shape functions phip
         u_p = sum(phip(p,:) .* u_vals, 2); % NT x 1
 
         % 计算非线性项 f(u_p) 的值
-        fp = f(u_p);
+        fp = f(u_p); % NT x1
 
         % 累加每个基函数在当前积分点的贡献
         for i = 1:6
-            F_local(:, i) = F_local(:, i) + weight(p) * phip(p, i) * fp;
+            F_local(:, i) = F_local(:, i) + weight(p) * phip(p, i) .* fp;
         end
     end
 
     % 考虑每个单元的面积并累加到全局右端项
-    F_local = F_local .* repmat(area(:, 1), 1, 6); % 乘以单元面积
+    F_local = F_local .* area(:, 1:6); % NT x6
     F = accumarray(elem2dof(:), F_local(:), [Ndof, 1]); % 累加得到全局右端项
 
     % 构造整体矩阵和右端项以一次性求解 u^{n+1} 和 w^{n+1}
@@ -189,11 +216,6 @@ for n = 1:numSteps
     energy_grad = 0;
     energy_potential = 0;
     for p = 1:nQuad
-        % 计算积分点在全局坐标中的位置
-        pxy = lambda(p, 1) * node(elem(:, 1), :) ...
-            + lambda(p, 2) * node(elem(:, 2), :) ...
-            + lambda(p, 3) * node(elem(:, 3), :);
-
         % 获取当前时间步解 u 在每个自由度上的值
         u_current = u_all(:,n+1);
         u_vals = u_current(elem2dof);
@@ -202,22 +224,42 @@ for n = 1:numSteps
         u_p = sum(phip(p,:) .* u_vals, 2); % NT x 1
 
         % 计算非线性势能项 F(u_p)
-        fp = F_energy(u_p);
+        fp = F_energy(u_p); % NT x1
 
-        % 计算梯度项和势能项的贡献
-        for i = 1:6
-            energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * sum((Dphip(:, 1, i, p) .* u_p).^2, 2) .* area(:, i);
-            energy_potential = energy_potential + weight(p) * fp .* area(:, i);
-        end
+        % 计算每个单元的梯度 grad_u
+        grad_u_x = Dphip(:,1,1,p) .* u_all(elem2dof(:,1), n+1) + ...
+                  Dphip(:,1,2,p) .* u_all(elem2dof(:,2), n+1) + ...
+                  Dphip(:,1,3,p) .* u_all(elem2dof(:,3), n+1) + ...
+                  Dphip(:,1,4,p) .* u_all(elem2dof(:,4), n+1) + ...
+                  Dphip(:,1,5,p) .* u_all(elem2dof(:,5), n+1) + ...
+                  Dphip(:,1,6,p) .* u_all(elem2dof(:,6), n+1); % NT x1
+
+        grad_u_y = Dphip(:,2,1,p) .* u_all(elem2dof(:,1), n+1) + ...
+                  Dphip(:,2,2,p) .* u_all(elem2dof(:,2), n+1) + ...
+                  Dphip(:,2,3,p) .* u_all(elem2dof(:,3), n+1) + ...
+                  Dphip(:,2,4,p) .* u_all(elem2dof(:,4), n+1) + ...
+                  Dphip(:,2,5,p) .* u_all(elem2dof(:,5), n+1) + ...
+                  Dphip(:,2,6,p) .* u_all(elem2dof(:,6), n+1); % NT x1
+
+        % 计算 |grad_u|^2
+        grad_u_sq = grad_u_x.^2 + grad_u_y.^2; % NT x1
+
+        % 累加梯度能量项
+        energy_grad = energy_grad + weight(p) * (epsilon^2 / 2) * grad_u_sq .* area(:, p);
+
+        % 累加势能项
+        energy_potential = energy_potential + weight(p) * fp .* area(:, p);
     end
     energy(n + 1) = sum(energy_grad) + sum(energy_potential);
 end
 
 % plot
 figure;
-for n = 1:100:numSteps+1
+for n = 1:1000:numSteps+1
     trisurf(elem, node(:, 1), node(:, 2), u_all(1:N, n));
     shading interp;
+    view(3);
+    colorbar;
     title(['Time step ', num2str(n)]);
     pause(0.1);
 end
@@ -229,3 +271,5 @@ xlabel('Time');
 ylabel('Energy');
 title('Energy Dissipation');
 grid on;
+
+
