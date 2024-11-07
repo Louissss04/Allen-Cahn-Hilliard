@@ -3,14 +3,14 @@ clear;
 % Cahn-Hilliard 方程一阶稳定半隐式 P1-P1 元 
 
 % Mesh generation
-[node, elem] = squaremesh([0, 2*pi, 0, 2*pi], pi/4);
+[node, elem] = squaremesh([0, 2*pi, 0, 2*pi], pi/2);
 showmesh(node, elem);
 
 % Important constants
 N = size(node, 1); % 节点数目
 NT = size(elem, 1); % 单元数目
 Ndof = N; % 自由度个数
-epsilon = 0.5; % epsilon 参数
+epsilon = 1; % epsilon 参数
 K = 0.5; % 稳定项系数 K 
 
 % Time
@@ -30,6 +30,8 @@ exact_u = @(x, y, t) 0.05 * exp(-t) .* sin(x) .* sin(y);
 g_func = @(x, y, t) (0.15 - 0.10 / epsilon^2) * exp(-t) .* sin(x) .* sin(y) ...
     - (0.00075 / epsilon^2) * exp(-3 * t) .* (sin(x) .* cos(x).^2 .* sin(y).^3 + ...
     sin(y) .* cos(y).^2 .* sin(x).^3 - sin(x).^3 .* sin(y).^3);
+
+% g_func = @(x, y, t) 0;
 
 % Dphi = Dlambda
 [Dphi, area] = gradbasis(node, elem);
