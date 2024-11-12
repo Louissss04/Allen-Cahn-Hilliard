@@ -308,7 +308,7 @@
 
 \subsection{能量稳定性}
 
-\begin{table}[htbp]
+\begin{table}[h]
 	\centering
 	\caption{稳定性结果 ($\epsilon = 1.000$)}
 	\begin{tabular}{c|ccccc}
@@ -322,7 +322,7 @@
 	\end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[h]
 	\centering
 	\caption{稳定性结果 ($\epsilon = 0.100$)}
 	\begin{tabular}{c|ccccc}
@@ -336,7 +336,7 @@
 	\end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[h]
 	\centering
 	\caption{稳定性结果 ($\epsilon = 0.010$)}
 	\begin{tabular}{c|cccccc}
@@ -351,7 +351,7 @@
 	\end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[h]
 	\centering
 	\caption{稳定性结果 ($\epsilon = 0.001$)}
 	\begin{tabular}{c|cccccc}
@@ -363,6 +363,100 @@
 		1.00 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
 		\bottomrule
 	\end{tabular}
+\end{table}
+
+\subsection{误差与收敛阶}
+
+\begin{table}[h] 
+	\centering
+	\caption{误差和收敛阶( $\varepsilon = 1.0000$)}
+	\label{tab:convergence_all}
+	\setlength{\tabcolsep}{4.5mm}{
+		\begin{tabular}{c c c c c c}
+			\toprule
+			Mesh Level & {$h$} & {$L^2$ Error} & {$H^1$ Error} & {$L^2$ Rate} & {$H^1$ Rate} \\ 
+			
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 1.0000$, $\Delta t = 1.0000 \times 10^{-5}$, $T = 2.0000 \times 10^{-4}$} \\
+			\midrule
+			1 & 0.50000 & 1.88408E-01 & 1.48444E+00 & -     & -     \\ 
+			2 & 0.25000 & 5.17445E-02 & 8.23836E-01 & 1.86  & 0.85  \\ 
+			3 & 0.12500 & 9.47422E-03 & 4.31544E-01 & 2.45  & 0.93  \\ 
+			4 & 0.06250 & 5.39032E-03 & 2.21080E-01 & 0.81  & 0.96  \\ 
+			5 & 0.03125 & 7.52089E-03 & 1.15565E-01 & -0.48 & 0.94  \\
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 1.0000$, $\Delta t = 1.0000 \times 10^{-6}$, $T = 2.0000 \times 10^{-5}$} \\
+			\midrule
+			1 & 0.50000 & 1.91750E-01 & 1.53699E+00 & -     & -     \\ 
+			2 & 0.25000 & 5.52223E-02 & 8.37885E-01 & 1.80  & 0.88  \\ 
+			3 & 0.12500 & 1.38672E-02 & 4.30171E-01 & 1.99  & 0.96  \\ 
+			4 & 0.06250 & 2.98913E-03 & 2.17266E-01 & 2.21  & 0.99  \\ 
+			5 & 0.03125 & 4.63691E-04 & 1.09027E-01 & 2.69  & 0.99  \\
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 1.0000$, $\Delta t = 1.0000 \times 10^{-7}$, $T = 2.0000 \times 10^{-6}$} \\
+			\midrule
+			1 & 0.50000 & 1.92207E-01 & 1.54449E+00 & -     & -     \\ 
+			2 & 0.25000 & 5.57077E-02 & 8.44899E-01 & 1.79  & 0.87  \\ 
+			3 & 0.12500 & 1.44027E-02 & 4.31800E-01 & 1.95  & 0.97  \\ 
+			4 & 0.06250 & 3.58373E-03 & 2.17329E-01 & 2.01  & 0.99  \\ 
+			5 & 0.03125 & 8.44025E-04 & 1.08932E-01 & 2.09  & 1.00  \\
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 1.0000$, $\Delta t = 1.0000 \times 10^{-8}$, $T = 2.0000 \times 10^{-7}$} \\
+			\midrule
+			1 & 0.50000 & 1.92254E-01 & 1.54526E+00 & -     & -     \\ 
+			2 & 0.25000 & 5.57636E-02 & 8.45853E-01 & 1.79  & 0.87  \\ 
+			3 & 0.12500 & 1.44641E-02 & 4.32677E-01 & 1.95  & 0.97  \\ 
+			4 & 0.06250 & 3.64444E-03 & 2.17517E-01 & 1.99  & 0.99  \\ 
+			5 & 0.03125 & 9.08010E-04 & 1.08947E-01 & 2.00  & 1.00  \\
+			\bottomrule
+			
+			
+			
+	\end{tabular}}
+\end{table}
+
+\begin{table}[h]
+	\centering
+	\caption{误差和收敛阶( $\varepsilon = 0.1000$)}
+	\label{tab:convergence_epsilon_0.1}
+	\setlength{\tabcolsep}{4.5mm}{
+		\begin{tabular}{c c c c c c}
+			\toprule
+			Mesh Level & {$h$} & {$L^2$ Error} & {$H^1$ Error} & {$L^2$ Rate} & {$H^1$ Rate} \\ 
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 0.1000$, $\Delta t = 1.0000 \times 10^{-5}$, $T = 2.0000 \times 10^{-4}$} \\
+			\midrule
+			1 & 0.50000 & 1.91507e-01 & 1.65202e+00 & -     & -     \\ 
+			2 & 0.25000 & 6.87150e-02 & 9.01213e-01 & 1.48  & 0.87  \\ 
+			3 & 0.12500 & 4.19682e-02 & 5.64734e-01 & 0.71  & 0.67  \\ 
+			4 & 0.06250 & 3.90038e-02 & 4.34088e-01 & 0.11  & 0.38  \\ 
+			5 & 0.03125 & 3.88631e-02 & 3.95503e-01 & 0.01  & 0.13  \\
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 0.1000$, $\Delta t = 1.0000 \times 10^{-6}$, $T = 2.0000 \times 10^{-5}$} \\
+			\midrule
+			1 & 0.50000 & 1.92088e-01 & 1.55670e+00 & -     & -     \\ 
+			2 & 0.25000 & 5.62866e-02 & 8.37973e-01 & 1.77  & 0.89  \\ 
+			3 & 0.12500 & 1.62661e-02 & 4.33357e-01 & 1.79  & 0.95  \\ 
+			4 & 0.06250 & 7.30916e-03 & 2.25094e-01 & 1.15  & 0.95  \\ 
+			5 & 0.03125 & 6.08318e-03 & 1.24532e-01 & 0.26  & 0.85  \\
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 0.1000$, $\Delta t = 1.0000 \times 10^{-7}$, $T = 2.0000 \times 10^{-6}$} \\
+			\midrule
+			1 & 0.50000 & 1.92241e-01 & 1.54649e+00 & -     & -     \\ 
+			2 & 0.25000 & 5.57901e-02 & 8.44616e-01 & 1.78  & 0.87  \\ 
+			3 & 0.12500 & 1.45580e-02 & 4.31608e-01 & 1.94  & 0.97  \\ 
+			4 & 0.06250 & 3.79601e-03 & 2.17381e-01 & 1.94  & 0.99  \\ 
+			5 & 0.03125 & 1.18599e-03 & 1.09116e-01 & 1.68  & 0.99  \\
+			\midrule
+			\multicolumn{6}{c}{参数: $K = 1.0000$, $\varepsilon = 0.1000$, $\Delta t = 1.0000 \times 10^{-8}$, $T = 2.0000 \times 10^{-7}$} \\
+			\midrule
+			1 & 0.50000 & 1.92258e-01 & 1.54547e+00 & -     & -     \\ 
+			2 & 0.25000 & 5.57715e-02 & 8.45821e-01 & 1.79  & 0.87  \\ 
+			3 & 0.12500 & 1.44783e-02 & 4.32644e-01 & 1.95  & 0.97  \\ 
+			4 & 0.06250 & 3.66111e-03 & 2.17504e-01 & 1.98  & 0.99  \\ 
+			5 & 0.03125 & 9.26760e-04 & 1.08948e-01 & 1.98  & 1.00  \\
+			\bottomrule
+	\end{tabular}}
 \end{table}
 
 \end{document}
