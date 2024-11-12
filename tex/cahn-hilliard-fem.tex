@@ -12,6 +12,9 @@
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage{amssymb}
+\usepackage{booktabs}   
+\usepackage{diagbox}    
+
 \newtheorem{theorem}{定理}
 \newtheorem{lemma}[theorem]{引理}
 \newtheorem{corollary}[theorem]{推论}
@@ -235,10 +238,133 @@
 %- 左侧的矩阵是一个 \( 2N \times 2N \) 的系数矩阵，用于描述系统的各项作用。
 %- 右侧的向量是当前时间步的已知项，取决于之前的解 \( \mathbf{u}^n \) 和非线性项 \( \mathbf{F}(u^n) \)。
 
+\section{非齐次Cahn-Hilliard方程}
+
+考虑方程形式如下：
+
+\begin{equation}
+	\begin{cases}
+		u_t - \Delta\left(-\Delta u + \dfrac{1}{\varepsilon^2} f(u)\right) = g, & (x, t) \in \Omega \times (0, T], \\
+		\left.\partial_n u\right|_{\partial \Omega} = 0, \\
+		\left.\partial_n\left(\Delta u - \dfrac{1}{\varepsilon^2} f(u)\right)\right|_{\partial \Omega} = 0, \\
+		u|_{t=0} = u_0,
+	\end{cases}
+\end{equation}
+
+其中，源项 \( g \) 由真解 \( u = e^{-t} \cos(\pi x) \cos(\pi y) \) 给出。
+
+\subsection{弱形式}
+
+找 \( u^{n+1}, w^{n+1} \in H^1(\Omega) \)，使得 \( \forall q, \psi \in H^1(\Omega) \)，满足：
+
+\begin{align}
+	& \frac{1}{\delta t} (u^{n+1} - u^n, q) + (\nabla w^{n+1}, \nabla q) = (g^{n+1}, q), \quad \forall q \in H^1(\Omega), \\
+	& (\nabla u^{n+1}, \nabla \psi) + \frac{K}{\varepsilon^2} (u^{n+1} - u^n, \psi) + \frac{1}{\varepsilon^2} (f(u^n), \psi) = (w^{n+1}, \psi), \quad \forall \psi \in H^1(\Omega).
+\end{align}
+
+\subsection{离散化}
+
+\begin{align}
+	& \frac{1}{\delta t} \sum_{i=1}^N (u_i^{n+1} - u_i^n) \int_{\Omega} \phi_i \phi_j \, dx + \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_j \, dx =   \int_{\Omega} g^{n+1} \phi_j \, dx, \quad \forall j = 1,2,\ldots, N, \\
+	& \sum_{i=1}^N u_i^{n+1} \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_k \, dx + \frac{K}{\varepsilon^2} \sum_{i=1}^N (u_i^{n+1} - u_i^n) \int_{\Omega} \phi_i \phi_k \, dx + \frac{1}{\varepsilon^2} \int_{\Omega} f(u_h^n) \phi_k \, dx = \sum_{i=1}^N w_i^{n+1} \int_{\Omega} \phi_i \phi_k \, dx, \quad \forall k = 1,2,\ldots, N.
+\end{align}
+
+\subsection{矩阵形式}
+
+\begin{itemize}
+	\item 质量矩阵 \( M \)：\( M_{ij} = \int_{\Omega} \phi_i \phi_j \, dx \)
+	\item 刚度矩阵 \( S \)：\( S_{ij} = \int_{\Omega} \nabla \phi_i \cdot \nabla \phi_j \, dx \)
+	\item 非线性项向量 \( \mathbf{F}(u^n) \)：\( F_j(u^n) = \int_{\Omega} f(u_h^n) \phi_j \, dx \)
+	\item 源项向量 \( \mathbf{g}^{n+1} \)：\( g_j^{n+1} = \int_{\Omega} g^{n+1} \phi_j \, dx \)
+\end{itemize}
 
 
+\[
+\begin{cases}
+	\frac{1}{\delta t} M (\mathbf{u}^{n+1} - \mathbf{u}^n) + S \mathbf{w}^{n+1} = \mathbf{g}^{n+1}, \\
+	S \mathbf{u}^{n+1} + \frac{K}{\varepsilon^2} M (\mathbf{u}^{n+1} - \mathbf{u}^n) + \frac{1}{\varepsilon^2} \mathbf{F}(u^n) = M \mathbf{w}^{n+1}.
+\end{cases}
+\]
 
-	
+\subsection{线性系统}
+
+\[
+\begin{bmatrix}
+	\frac{1}{\delta t} M & S \\
+	\frac{K}{\varepsilon^2} M + S & -M
+\end{bmatrix}
+\begin{bmatrix}
+	\mathbf{u}^{n+1} \\
+	\mathbf{w}^{n+1}
+\end{bmatrix}
+=
+\begin{bmatrix}
+	\frac{1}{\delta t} M \mathbf{u}^n + \mathbf{g}^{n+1} \\
+	\frac{K}{\varepsilon^2} M \mathbf{u}^n - \frac{1}{\varepsilon^2} \mathbf{F}(u^n)
+\end{bmatrix}.
+\]
+
+\section{数值结果}
+
+\subsection{能量稳定性}
+
+\begin{table}[htbp]
+	\centering
+	\caption{稳定性结果 ($\epsilon = 1.000$)}
+	\begin{tabular}{c|ccccc}
+		\toprule
+		\diagbox{K}{$\Delta t$} & $1.0 \times 10^{-4}$ & $5.0 \times 10^{-4}$ & $1.0 \times 10^{-3}$ & $5.0 \times 10^{-3}$ & $1.0 \times 10^{-2}$ \\
+		\midrule
+		0.00 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
+		0.50 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
+		1.00 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{稳定性结果 ($\epsilon = 0.100$)}
+	\begin{tabular}{c|ccccc}
+		\toprule
+		\diagbox{K}{$\Delta t$} & $1.0 \times 10^{-4}$ & $5.0 \times 10^{-4}$ & $1.0 \times 10^{-3}$ & $5.0 \times 10^{-3}$ & $1.0 \times 10^{-2}$ \\
+		\midrule
+		0.00 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} \\
+		0.50 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
+		1.00 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{稳定性结果 ($\epsilon = 0.010$)}
+	\begin{tabular}{c|cccccc}
+		\toprule
+		\diagbox{K}{$\Delta t$} & $1.0 \times 10^{-5}$ & $5.0 \times 10^{-5}$ & $1.0 \times 10^{-4}$ & $5.0 \times 10^{-4}$ & $1.0 \times 10^{-3}$ & $1.0 \times 10^{-2}$ \\
+		\midrule
+		0.00 & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} \\
+		0.50 & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} \\
+		0.65 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} \\
+		1.00 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{稳定性结果 ($\epsilon = 0.001$)}
+	\begin{tabular}{c|cccccc}
+		\toprule
+		\diagbox{K}{$\Delta t$} & $2.0 \times 10^{-5}$ & $5.0 \times 10^{-5}$ & $1.0 \times 10^{-4}$ & $5.0 \times 10^{-4}$ & $1.0 \times 10^{-3}$ & $1.0 \times 10^{-2}$ \\
+		\midrule
+		0.00 & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} \\
+		0.50 & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} \\
+		1.00 & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} & \textcolor{green}{$\circ$} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
 \end{document}
 
 
