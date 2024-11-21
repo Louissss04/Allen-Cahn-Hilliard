@@ -2,21 +2,21 @@ clear;
 clc;                      
 
 % 1. 定义固定参数
-h = 1/8;                 % 网格大小
-epsilon = 0.001;            
-isPlot = 0;               % 是否绘制结果（1: 是, 0: 否）
+h = 1/16;                 % 网格大小
+epsilon = 0.1;            
+isPlot = 1;               % 是否绘制结果（1: 是, 0: 否）
 is_g_nonzero = 0;         % 是否使用非零源项（1: 非零, 0: 零）
 
 % 2. 生成初始网格
 [node, elem] = squaremesh([0, 1, 0, 1], h);
 
 % 3. 定义变化的参数
-% dt_values = [1e-4, 5e-4, 1e-3, 5e-3, 1e-2];    % 时间步长数组
-% K_values = [0, 0.5, 1];                  % 稳定项系数数组
+dt_values = [1e-4, 5e-4, 1e-3, 5e-3, 1e-2];    % 时间步长数组
+K_values = [0, 0.5, 1];                  % 稳定项系数数组
 % dt_values = [1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 1e-2];
-% K_values = [0, 0.5, 0.65, 1];
-dt_values = [2e-5, 5e-5, 1e-4, 5e-4, 1e-3, 1e-2];
-K_values = [0, 0.5, 1];
+% K_values = [0.5];
+% dt_values = [2e-5, 5e-5, 1e-4, 5e-4, 1e-3, 1e-2];
+% K_values = [0, 0.5, 1];
 
 % 4. 初始化稳定性结果表
 num_K = length(K_values);                % K 的数量

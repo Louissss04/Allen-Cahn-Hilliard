@@ -1,17 +1,17 @@
 clear; 
-clc;
+
 
 % 1. 定义初始网格大小和生成初始网格
-h = 1/4;
+h = 1/2;
 [node, elem] = squaremesh([0, 1, 0, 1], h);
 
 % 2. 定义模拟参数
 epsilon = 0.01;       % ε 参数
 K = 1;           % 稳定项系数
-dt = 1e-3;         % 时间步长
+dt = 1e-8;         % 时间步长
 T = 20*dt;         % 总时间
-isPlot = 1;        % 是否绘制结果
-is_g_nonzero = 0;  % 是否使用非零源项（1: 非零, 0: 零）
+isPlot = 0;        % 是否绘制结果
+is_g_nonzero = 1;  % 是否使用非零源项（1: 非零, 0: 零）
 
 % 3. 预分配误差数组
 n = 4;                            % 进行4次网格细化
@@ -56,10 +56,20 @@ if is_g_nonzero
     % 显示收敛阶表
     fprintf('收敛阶:\n');
     fprintf('Mesh Level\t h\t\t L2 Error\t\t H1 Error\t L2 Rate\t H1 Rate\n');
-    for m = 1:n
-        rate_L2 = log(L2error(m) / L2error(m+1)) / log(2);
-        rate_H1 = log(H1error(m) / H1error(m+1)) / log(2);
-        fprintf('%d\t\t %.5f\t %.5e\t %.5e\t %.2f\t\t %.2f\n', ...
+    for m = 1:n+1
+        if m == 1
+            % 初始网格，没有收敛阶
+            rate_L2 = '-';
+            rate_H1 = '-';
+        else
+            % 计算收敛阶
+            rate_L2 = log(L2error(m-1) / L2error(m)) / log(2);
+            rate_H1 = log(H1error(m-1) / H1error(m)) / log(2);
+            % 格式化为两位小数
+            rate_L2 = sprintf('%.2f', rate_L2);
+            rate_H1 = sprintf('%.2f', rate_H1);
+        end
+        fprintf('%d\t\t %.5f\t %.5e\t %.5e\t %s\t\t %s\n', ...
                 m, h_vals(m), L2error(m), H1error(m), rate_L2, rate_H1);
     end
 
@@ -70,7 +80,7 @@ if is_g_nonzero
     grid on;
     xlabel('h', 'FontSize', 14);
     ylabel('L2 Error', 'FontSize', 14);
-    title('L2 Error vs Mesh Size', 'FontSize', 16);
+    title('L2 Error', 'FontSize', 16);
     legend('L2 Error', 'Location', 'Best');
     hold off;
 
@@ -81,7 +91,7 @@ if is_g_nonzero
     grid on;
     xlabel('h', 'FontSize', 14);
     ylabel('H1 Error', 'FontSize', 14);
-    title('H1 Error vs Mesh Size', 'FontSize', 16);
+    title('H1 Error', 'FontSize', 16);
     legend('H1 Error', 'Location', 'Best');
     hold off;
 else

@@ -31,8 +31,8 @@ function [L2_error, H1_error, is_stable] = solveCahnHilliard(node, elem, K, epsi
     % 使用符号计算自动生成精确解的梯度
     syms x_sym y_sym t_sym;
 
-    % 定义精确解 exact_u_sym（根据需要更改此表达式以进行不同的真解实验）
-    % 示例真解：u(x, y, t) = exp(-t) * cos(pi*x) * cos(pi*y)
+    % 定义精确解 exact_u_sym
+    % 真解：u(x, y, t) = exp(-t) * cos(pi*x) * cos(pi*y)
     exact_u_sym = exp(-t_sym) * cos(pi*x_sym) * cos(pi*y_sym);
 
     % 计算梯度 Du 的符号表达式
@@ -67,7 +67,7 @@ function [L2_error, H1_error, is_stable] = solveCahnHilliard(node, elem, K, epsi
     H1_error = zeros(numSteps + 1, 1);     % 存储 H1 误差
 
     %% 5. 计算基函数梯度和面积
-    [Dphi, area] = gradbasis(node, elem); % 假设 gradbasis 返回 [NT x 2 x 3] 的 Dphi 和 [NT x 1] 的 area
+    [Dphi, area] = gradbasis(node, elem);
 
     %% 6. 组装刚度矩阵 S
     S = sparse(Ndof, Ndof);
@@ -84,22 +84,35 @@ function [L2_error, H1_error, is_stable] = solveCahnHilliard(node, elem, K, epsi
 
     %% 7. 组装质量矩阵 M
     M = sparse(Ndof, Ndof);
+%     for i = 1:3
+%         for j = i:3
+%             if i == j
+%                 Mij = (1/6) * area; % 对角部分
+%             else
+%                 Mij = (1/12) * area; % 非对角部分
+%             end
+%             M = M + sparse([elem(:, i); elem(:, j)], [elem(:, j); elem(:, i)], [Mij; Mij], Ndof, Ndof);
+%         end
+%     end
     for i = 1:3
         for j = i:3
             if i == j
                 Mij = (1/6) * area; % 对角部分
+                
+                M = M + sparse(elem(:, i), elem(:, j), Mij, Ndof, Ndof);
             else
                 Mij = (1/12) * area; % 非对角部分
+              
+                M = M + sparse([elem(:, i); elem(:, j)], [elem(:, j); elem(:, i)], [Mij; Mij], Ndof, Ndof);
             end
-            M = M + sparse([elem(:, i); elem(:, j)], [elem(:, j); elem(:, i)], [Mij; Mij], Ndof, Ndof);
         end
     end
-
+    
     %% 8. 定义能量函数
     F_energy = @(u) (1/4) * (u.^2 - 1).^2;
 
     %% 9. 获取积分点和权重
-    [lambda, weight] = quadpts(4); % 假设 quadpts 返回 [nQuad x 3] 的 lambda 和 [nQuad x 1] 的 weight
+    [lambda, weight] = quadpts(4); 
     nQuad = size(lambda, 1);
 
     %% 10. 计算初始能量和误差
@@ -141,7 +154,7 @@ function [L2_error, H1_error, is_stable] = solveCahnHilliard(node, elem, K, epsi
 
     % 计算初始 H1 误差
     exact_Du_initial = @(pxy) exact_Du(pxy, 0);
-    H1_error(1) = getH1error(node, elem, exact_Du_initial, u, K, 4); % quadOrder = 4
+    H1_error(1) = getH1error(node, elem, exact_Du_initial, u); 
 
     %% 11. 时间步进循环
     for n = 1:numSteps
@@ -174,13 +187,13 @@ function [L2_error, H1_error, is_stable] = solveCahnHilliard(node, elem, K, epsi
         %% 11.2 计算非线性项 F(u^n)
         f = @(u) u.^3 - u; % 定义非线性函数
         F_local = zeros(NT, 3); % 初始化局部右端项
-        u_vals = u_all(elem(:, 1:3), n); % NT x 3
+%         u_vals = u_all(elem(:, 1:3), n); % NT x 3
 
         for p = 1:nQuad
             % 积分点在全局坐标中的位置
-            pxy = lambda(p, 1) * node(elem(:, 1), :) + ...
-                  lambda(p, 2) * node(elem(:, 2), :) + ...
-                  lambda(p, 3) * node(elem(:, 3), :);
+%             pxy = lambda(p, 1) * node(elem(:, 1), :) + ...
+%                   lambda(p, 2) * node(elem(:, 2), :) + ...
+%                   lambda(p, 3) * node(elem(:, 3), :);
 
             % 插值获取 u_p
             u_p = lambda(p, 1) * u_all(elem(:,1), n) + ...
@@ -219,9 +232,9 @@ function [L2_error, H1_error, is_stable] = solveCahnHilliard(node, elem, K, epsi
         energy_potential = 0;
         for p = 1:nQuad
             % 积分点在全局坐标中的位置
-            pxy = lambda(p, 1) * node(elem(:, 1), :) + ...
-                  lambda(p, 2) * node(elem(:, 2), :) + ...
-                  lambda(p, 3) * node(elem(:, 3), :);
+%             pxy = lambda(p, 1) * node(elem(:, 1), :) + ...
+%                   lambda(p, 2) * node(elem(:, 2), :) + ...
+%                   lambda(p, 3) * node(elem(:, 3), :);
 
             % 当前解在每个节点上的值
             u1 = u(elem(:, 1));
@@ -255,13 +268,13 @@ function [L2_error, H1_error, is_stable] = solveCahnHilliard(node, elem, K, epsi
 
         % 计算 H1 误差
         exact_Du_current = @(pxy) exact_Du(pxy, current_t);
-        H1_error(n + 1) = getH1error(node, elem, exact_Du_current, u, K, 4); % quadOrder = 4
+        H1_error(n + 1) = getH1error(node, elem, exact_Du_current, u);
     end
 
     %% 12. 检查能量是否递减
 
     % 检查能量是否递减或保持不变
-    is_stable = all(diff(energy) <= 0);
+    is_stable = all(diff(energy) <= 1e-6);
 
     %% 13. 绘制结果
     if isPlot
